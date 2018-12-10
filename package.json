@@ -1,0 +1,24 @@
+{
+  "name": "happn-primus-wrapper",
+  "version": "1.0.0",
+  "description": "Wraps primus with happner specific logic",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/happner/happn-primus-wrapper.git"
+  },
+  "keywords": [
+    "websocket",
+    "primus",
+    "happner"
+  ],
+  "author": "Tenacious Digital",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/happner/happn-primus-wrapper/issues"
+  },
+  "homepage": "https://github.com/happner/happn-primus-wrapper#readme"
+}
