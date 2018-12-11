@@ -1,0 +1,15 @@
+language: node_js
+before_install:
+  - if [[ `npm -v` != 3* ]]; then npm i -g npm@3; fi
+branches:
+  only:
+    - master
+node_js:
+  - "11"
+  - "10"
+  - "8"
+env:
+- NODE_TLS_REJECT_UNAUTHORIZED=0
+# how to get the right line numbers on failure
+# script: "npm test"
+script: "npm test"
