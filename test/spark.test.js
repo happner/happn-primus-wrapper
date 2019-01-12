@@ -297,8 +297,11 @@ describe('Spark', function () {
     });
 
     it('emits `outgoing::ping` when sending a ping', function (done) {
-      var primus = new Primus(server, { pingInterval: 10 })
-        , spark = new primus.Spark();
+      var primus = new Primus(server, { pingInterval: 10 });
+      primus.on('connection', function(spark){
+        spark.happnProtocol = 'happn_4';
+      });
+      var spark = new primus.Spark();
 
       spark.on('outgoing::ping', function () {
         spark.on('end', function () {
@@ -308,8 +311,11 @@ describe('Spark', function () {
     });
 
     it('writes `primus::ping::<timestamp>` when sending a ping', function (done) {
-      var primus = new Primus(server, { pingInterval: 10 })
-        , spark = new primus.Spark();
+      var primus = new Primus(server, { pingInterval: 10 });
+      primus.on('connection', function(spark){
+        spark.happnProtocol = 'happn_4';
+      });
+      var spark = new primus.Spark();
 
       spark.on('outgoing::ping', function (time) {
         spark.once('outgoing::data', function (data) {
@@ -318,6 +324,57 @@ describe('Spark', function () {
             primus.destroy(done);
           });
         });
+      });
+    });
+
+    it('does not write a `primus::ping::<timestamp>` when client is legacy, happn_', function (done) {
+
+      this.timeout(10000);
+      var primus = new Primus(server, { pingInterval: 10 });
+      primus.once('connection', function(spark){
+        spark.happnProtocol = 'happn_3';
+      });
+      var spark = new primus.Spark();
+      var testTimeout = setTimeout(function(){
+        primus.destroy(done);
+      }, 3000);
+      spark.on('outgoing::ping', function (time) {
+        clearTimeout(testTimeout);
+        done(new Error('this should not have happened!'));
+      });
+    });
+
+    it('does not write a `primus::ping::<timestamp>` when client is legacy, protocol 1.1.0', function (done) {
+
+      this.timeout(10000);
+      var primus = new Primus(server, { pingInterval: 10 });
+      primus.on('connection', function(spark){
+        spark.happnProtocol = '1.1.0';
+      });
+      var spark = new primus.Spark();
+      var testTimeout = setTimeout(function(){
+        primus.destroy(done);
+      }, 3000);
+      spark.on('outgoing::ping', function (time) {
+        clearTimeout(testTimeout);
+        done(new Error('this should not have happened!'));
+      });
+    });
+
+    it('does not write a `primus::ping::<timestamp>` when client is legacy, protocol isNaN', function (done) {
+
+      this.timeout(10000);
+      var primus = new Primus(server, { pingInterval: 10 });
+      primus.on('connection', function(spark){
+        spark.happnProtocol = 'blah';
+      });
+      var spark = new primus.Spark();
+      var testTimeout = setTimeout(function(){
+        primus.destroy(done);
+      }, 3000);
+      spark.on('outgoing::ping', function (time) {
+        clearTimeout(testTimeout);
+        done(new Error('this should not have happened!'));
       });
     });
 
