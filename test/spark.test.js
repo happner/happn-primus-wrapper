@@ -186,8 +186,13 @@ describe('Spark', function () {
 
   describe('#pingInterval', function () {
     it('disconnects if the client does not respond to a heartbeat', function (done) {
+
+      this.timeout(5000);
+
       var primus = new Primus(server, { pingInterval: 25 });
       var spark = new primus.Spark();
+      spark.happnConnected = Date.now();
+      spark.happnProtocol = 'happn_4';
 
       primus.on('disconnection', function (socket) {
         expect(socket).to.equal(spark);
@@ -195,6 +200,7 @@ describe('Spark', function () {
       });
 
       primus.on('connection', function (socket) {
+        console.log('on connection:::');
         expect(socket).to.equal(spark);
       });
     });

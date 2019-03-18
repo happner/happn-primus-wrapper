@@ -43,8 +43,8 @@ Primus.Spark.prototype.heartbeat = function heartbeat() {
     //spark has not pinged yet - just set lastPing to now
     if (!spark.lastPing) spark.lastPing = Date.now();
 
-    //lastPing was twice the ping interval ago
-    if ((now - spark.lastPing) > (spark.primus.options.pingInterval * 2)){
+    //lastPing was twice the default legacy ping interval ago
+    if ((now - spark.lastPing) > (25e3 * 2)){
       spark.alive = false;
       this.endUnresponsive();
     }
@@ -68,18 +68,5 @@ Primus.Spark.prototype.onLegacyPing = function(pingMessage){
   this._write('primus::pong::' + pingMessage.split('::')[2]);
   this.emit('heartbeat');
 }
-
-//wish we could assign initialization functions to the class and not the instance, but not doable :(
-// Primus.Spark.initialise(function(){
-//
-//   const spark = this;
-//
-//   spark.primus.transform('incoming', function(packet, next) {
-//
-//     if (packet.data.indexOf && packet.data.indexOf('primus::ping') == 0) return this.onLegacyPing();
-//
-//     next();
-//   });
-// });
 
 module.exports = Primus;
