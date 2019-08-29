@@ -262,7 +262,7 @@ describe('Spark Unit', function() {
             expect(unresponsive).to.equal(true);
             expect(pinged).to.equal(true);
             done();
-          }, 6000);//client ping has not happened for pingInterval * 2
+          }, 8000);//client ping has not happened for pingInterval * 2
         }, 2000);
       }, 2000);
     });

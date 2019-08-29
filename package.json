@@ -1,6 +1,6 @@
 {
   "name": "happn-primus-wrapper",
-  "version": "7.3.4",
+  "version": "7.3.5",
   "description": "Wraps primus with happner specific logic",
   "main": "index.js",
   "scripts": {
