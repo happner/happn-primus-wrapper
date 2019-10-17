@@ -29,26 +29,18 @@ Primus.Spark.prototype.endUnresponsive = function() {
 Primus.Spark.prototype.heartbeat = function heartbeat() {
   let spark = this;
   let now = Date.now();
-  //we have just connected with a client, if CONFIGURE-SESSION has not
-  //happened yet or the spark is legacy, getProtocolVersion will return -1
-  //we then wait until the next ping to ensure we know the spark is legacy
-  //or not
-  if (this.getProtocolVersion(spark) == -1 &&
-    (now - spark.happnConnected <= spark.primus.options.pingInterval)) {
-      return;
-    }
 
   //not alive anymore, end  the spark
   if (!spark.alive) {
     return this.endUnresponsive();
   }
 
-  //we have waited for CONFIGURE-SESSION,
-  //the protocol has not been set, or protocol is lower than "4"
+  //the protocol has not been set via CONFIGURE-SESSION, or protocol is lower than "4"
   if (this.getProtocolVersion(spark) < 4) {
     //spark has not pinged yet - set lastPing to now
     if (!spark.lastPing) spark.lastPing = Date.now();
     //lastPing was twice the default legacy ping interval ago
+    //even if the spark is non-legacy, the 25 second wait for CONFIGURE-SESSION should be adequate
     if ((now - spark.lastPing) > (25e3 * 2)) {
       spark.alive = false;
       this.endUnresponsive();
