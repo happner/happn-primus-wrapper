@@ -5,7 +5,6 @@ describe('Spark Unit', function() {
     Primus = common.Primus,
     http = require('http'),
     expect = common.expect,
-    Spark = Primus.Spark,
     server, primus;
 
   beforeEach(function beforeEach(done) {
@@ -23,20 +22,23 @@ describe('Spark Unit', function() {
     it('tests sparkIsLegacy', function() {
       primus = new Primus(server);
       var spark = new primus.Spark();
-      expect(spark.sparkIsLegacy(spark)).to.equal(true);
+      expect(spark.getProtocolVersion(spark)).to.equal(-1);
       spark.happnProtocol = 'happn_4';
-      expect(spark.sparkIsLegacy(spark)).to.equal(false);
+      expect(spark.getProtocolVersion(spark)).to.equal(4);
+      spark.happnProtocol = 'happn_10';
+      expect(spark.getProtocolVersion(spark)).to.equal(10);
+      spark.happnProtocol = '10';
+      expect(spark.getProtocolVersion(spark)).to.equal(10);
       spark.happnProtocol = '4';
-      expect(spark.sparkIsLegacy(spark)).to.equal(false);
+      expect(spark.getProtocolVersion(spark)).to.equal(4);
       spark.happnProtocol = '1.1.0';
-      expect(spark.sparkIsLegacy(spark)).to.equal(true);
+      expect(spark.getProtocolVersion(spark)).to.equal(1);
       spark.happnProtocol = undefined;
-      expect(spark.sparkIsLegacy(spark)).to.equal(true);
-      spark.happnProtocol = '4';
-      spark.lastPing = Date.now();
-      expect(spark.sparkIsLegacy(spark)).to.equal(true);
+      expect(spark.getProtocolVersion(spark)).to.equal(-1);
+      spark.happnProtocol = 'blah';
+      expect(spark.getProtocolVersion(spark)).to.equal(-1);
       spark.happnProtocol = 'happn_3';
-      expect(spark.sparkIsLegacy(spark)).to.equal(true);
+      expect(spark.getProtocolVersion(spark)).to.equal(3);
     });
 
     it('tests the heartbeat override, happnConnected, non-legacy', function(done) {
@@ -58,12 +60,13 @@ describe('Spark Unit', function() {
       });
 
       spark.happnConnected = Date.now();
-      spark.happnProtocol = 'happn_4';
       spark.heartbeat();
 
       setTimeout(function() {
         expect(pinged).to.equal(false);
         secondHeartBeat = true;
+        spark.happnProtocol = 'happn_4';
+        spark.heartbeat();
       }, 2000);
     });
 
@@ -75,7 +78,6 @@ describe('Spark Unit', function() {
         pingInterval: 3000
       });
       var spark = new primus.Spark();
-      var secondHeartBeat = false;
       var pinged = false;
 
       spark.on('outgoing::ping', function() {
@@ -107,7 +109,6 @@ describe('Spark Unit', function() {
       });
 
       var spark = new primus.Spark();
-      var secondHeartBeat = false;
       var unresponsive = false;
 
       var pinged = false;
@@ -147,7 +148,6 @@ describe('Spark Unit', function() {
         pingInterval: 3000
       });
       var spark = new primus.Spark();
-      var secondHeartBeat = false;
       var unresponsive = false;
 
       var pinged = false;
@@ -190,7 +190,6 @@ describe('Spark Unit', function() {
         pingInterval: 3000
       });
       var spark = new primus.Spark();
-      var secondHeartBeat = false;
       var unresponsive = false;
 
       var pinged = false;
@@ -202,37 +201,35 @@ describe('Spark Unit', function() {
       });
 
       spark.happnConnected = Date.now();
-      spark.happnProtocol = 'happn_4';
+
 
       expect(spark.alive).to.equal(true);
-
       spark.heartbeat();
 
       setTimeout(function() {
         expect(unresponsive).to.equal(false);
         setTimeout(function() {
           expect(unresponsive).to.equal(false);
+          spark.happnProtocol = 'happn_4';
           setTimeout(function() {
             expect(unresponsive).to.equal(true);
             expect(pinged).to.equal(true);
             done();
-          }, 6000);//client ping has not happened for pingInterval * 2
+          }, 7000);//client ping has not happened for pingInterval * 2
         }, 2000);
       }, 2000);
     });
 
     it('tests the heartbeat override, happnConnected, non-legacy unresponsive, with pong', function(done) {
 
-      this.timeout(15000);
+      this.timeout(20000);
 
       primus = new Primus(server, {
         pingInterval: 3000
       });
 
-      var spark = new primus.Spark();
-      var secondHeartBeat = false;
+      var spark = new primus.Spark({});
       var unresponsive = false;
-
       var pinged = false;
       spark.on('outgoing::ping', function() {
         pinged = true;
@@ -242,8 +239,6 @@ describe('Spark Unit', function() {
       });
 
       spark.happnConnected = Date.now();
-      spark.happnProtocol = 'happn_4';
-
       expect(spark.alive).to.equal(true);
 
       spark.heartbeat();
@@ -252,6 +247,7 @@ describe('Spark Unit', function() {
         expect(unresponsive).to.equal(false);
         setTimeout(function() {
           expect(unresponsive).to.equal(false);
+          spark.happnProtocol = 'happn_4';//CONFIGURE-SESSION happens
           //half way through we get a pong
           setTimeout(function(){
             //fake ping event from spark
@@ -262,7 +258,7 @@ describe('Spark Unit', function() {
             expect(unresponsive).to.equal(true);
             expect(pinged).to.equal(true);
             done();
-          }, 8000);//client ping has not happened for pingInterval * 2
+          }, 12000);//client ping has not happened for pingInterval * 2
         }, 2000);
       }, 2000);
     });
@@ -298,7 +294,7 @@ describe('Spark Unit', function() {
       this.timeout(10000);
       primus = new Primus(server, {
         allowSkippedHeartBeats: 3
-      })
+      });
       var spark = new primus.Spark();
 
       spark.__originalEnd = spark.end.bind(spark);
