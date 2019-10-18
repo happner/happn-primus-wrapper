@@ -1,13 +1,12 @@
-describe('Spark', function () {
+describe('Spark', function() {
   'use strict';
 
-  var common = require('./common')
-    , Primus = common.Primus
-    , http = require('http')
-    , expect = common.expect
-    , Spark = Primus.Spark
-    , server
-    , primus;
+  var common = require('./common'),
+    Primus = common.Primus,
+    http = require('http'),
+    expect = common.expect,
+    Spark = Primus.Spark,
+    server, primus;
 
   beforeEach(function beforeEach(done) {
     server = http.createServer();
@@ -21,35 +20,35 @@ describe('Spark', function () {
     primus.destroy(done);
   });
 
-  it('creates an id if none is supplied', function () {
+  it('creates an id if none is supplied', function() {
     var spark = new primus.Spark();
 
     expect(spark.id).to.be.a('string');
   });
 
-  it('is a Stream instance', function () {
+  it('is a Stream instance', function() {
     expect(new primus.Spark()).to.be.instanceOf(require('stream'));
   });
 
-  it('uses the supplied id if one is provided', function () {
+  it('uses the supplied id if one is provided', function() {
     var spark = new primus.Spark({}, {}, {}, 'balls');
 
     expect(spark.id).to.equal('balls');
   });
 
-  it('emits a `connection` event on the primus instance when created', function (done) {
+  it('emits a `connection` event on the primus instance when created', function(done) {
     var spark = new primus.Spark();
 
-    primus.on('connection', function (socket) {
+    primus.on('connection', function(socket) {
       expect(socket).to.equal(spark);
       done();
     });
   });
 
-  it('can be retreived using primus.spark()', function (done) {
+  it('can be retreived using primus.spark()', function(done) {
     var spark = new primus.Spark();
 
-    primus.on('connection', function (socket) {
+    primus.on('connection', function(socket) {
       expect(socket).to.equal(spark);
 
       var ref = primus.spark(socket.id);
@@ -60,7 +59,7 @@ describe('Spark', function () {
     });
   });
 
-  it('accepts a third-party spark id generator', function () {
+  it('accepts a third-party spark id generator', function() {
     var primus = new Primus(server, {
       idGenerator: () => 'foo',
       pingInterval: false
@@ -70,12 +69,12 @@ describe('Spark', function () {
     expect(spark.id).to.equal('foo');
   });
 
-  it('emits a `readyStateChange` event when the readyState changes', function (done) {
+  it('emits a `readyStateChange` event when the readyState changes', function(done) {
     var spark = new primus.Spark();
 
     expect(spark.readyState).to.equal(Spark.OPEN);
 
-    spark.on('readyStateChange', function () {
+    spark.on('readyStateChange', function() {
       expect(spark.readyState).to.equal(Spark.CLOSED);
       done();
     });
@@ -84,15 +83,15 @@ describe('Spark', function () {
     spark.readyState = Spark.CLOSED;
   });
 
-  it('transforms querystrings', function()  {
+  it('transforms querystrings', function() {
     var spark = new primus.Spark({}, {}, 'string=foo');
 
     expect(spark.query).to.be.a('object');
     expect(spark.query.string).to.equal('foo');
   });
 
-  describe('#reserved', function () {
-    it('sees all incoming:: and outgoing:: as reserved', function () {
+  describe('#reserved', function() {
+    it('sees all incoming:: and outgoing:: as reserved', function() {
       var spark = new primus.Spark();
 
       expect(spark.reserved('incoming::error')).to.equal(true);
@@ -107,7 +106,7 @@ describe('Spark', function () {
       expect(spark.reserved('OUTGOING::')).to.equal(false);
     });
 
-    it('sees specific events as reserved', function () {
+    it('sees specific events as reserved', function() {
       var spark = new primus.Spark();
 
       expect(spark.reserved('error')).to.equal(true);
@@ -115,11 +114,11 @@ describe('Spark', function () {
     });
   });
 
-  describe('#end', function () {
-    it('emits a `disconnection` event on the primus instance when destroyed', function (done) {
+  describe('#end', function() {
+    it('emits a `disconnection` event on the primus instance when destroyed', function(done) {
       var spark = new primus.Spark();
 
-      primus.on('disconnection', function (socket) {
+      primus.on('disconnection', function(socket) {
         expect(socket).to.equal(spark);
         done();
       });
@@ -127,25 +126,25 @@ describe('Spark', function () {
       spark.end();
     });
 
-    it('emits `disconnection` events when the server gets destroyed', function (done) {
-      var create = 10
-        , connection = 0
-        , disconnection = 0;
+    it('emits `disconnection` events when the server gets destroyed', function(done) {
+      var create = 10,
+        connection = 0,
+        disconnection = 0;
 
-      primus.on('connection', function () {
+      primus.on('connection', function() {
         connection++;
       });
 
-      primus.on('disconnection', function () {
+      primus.on('disconnection', function() {
         disconnection++;
       });
 
       for (var i = 0; i < create; i++) new primus.Spark();
 
-      setTimeout(function () {
+      setTimeout(function() {
         expect(connection).to.equal(create);
 
-        primus.destroy(function () {
+        primus.destroy(function() {
           expect(connection).to.equal(create);
           expect(disconnection).to.equal(create);
 
@@ -154,17 +153,17 @@ describe('Spark', function () {
       }, 10);
     });
 
-    it('removes only our event listeners after the `end` event is emitted', function (done) {
-      var spark = new primus.Spark()
-        , data = 0;
+    it('removes only our event listeners after the `end` event is emitted', function(done) {
+      var spark = new primus.Spark(),
+        data = 0;
 
-      spark.on('data', function (msg) {
+      spark.on('data', function(msg) {
         expect(msg).to.equal('foo');
         data++;
       });
 
-      spark.on('end', function () {
-        process.nextTick(function () {
+      spark.on('end', function() {
+        process.nextTick(function() {
           spark.emit('data', 'foo');
           expect(data).to.equal(2);
           done();
@@ -177,76 +176,82 @@ describe('Spark', function () {
       spark.end();
     });
 
-    it('emits an outgoing::end event', function (done) {
+    it('emits an outgoing::end event', function(done) {
       var spark = new primus.Spark();
       spark.on('outgoing::end', done);
       spark.end();
     });
   });
 
-  describe('#pingInterval', function () {
-    it('disconnects if the client does not respond to a heartbeat', function (done) {
+  describe('#pingInterval', function() {
+    it('disconnects if the client does not respond to a heartbeat', function(done) {
 
       this.timeout(5000);
 
-      var primus = new Primus(server, { pingInterval: 25 });
+      var primus = new Primus(server, {
+        pingInterval: 25
+      });
       var spark = new primus.Spark();
       spark.happnConnected = Date.now();
       spark.happnProtocol = 'happn_4';
 
-      primus.on('disconnection', function (socket) {
+      primus.on('disconnection', function(socket) {
         expect(socket).to.equal(spark);
         primus.destroy(done);
       });
 
-      primus.on('connection', function (socket) {
+      primus.on('connection', function(socket) {
         console.log('on connection:::');
         expect(socket).to.equal(spark);
       });
     });
   });
 
-  describe('#write', function () {
-    it('encodes the data', function (done) {
-      var spark = new primus.Spark()
-        , data = { foo: 'bar' };
+  describe('#write', function() {
+    it('encodes the data', function(done) {
+      var spark = new primus.Spark(),
+        data = {
+          foo: 'bar'
+        };
 
-      spark.once('outgoing::data', function (msg) {
+      spark.once('outgoing::data', function(msg) {
         expect(msg).to.be.a('string');
         expect(msg).to.equal(JSON.stringify(data));
 
         done();
-      }).on('error', function (err) {
+      }).on('error', function(err) {
         throw err;
       });
 
       expect(spark.write(data)).to.equal(true);
     });
 
-    it('escapes the data', function (done) {
-      var spark = new primus.Spark()
-        , data = ['\u2028\u2029'];
+    it('escapes the data', function(done) {
+      var spark = new primus.Spark(),
+        data = ['\u2028\u2029'];
 
-      spark.once('outgoing::data', function (msg) {
+      spark.once('outgoing::data', function(msg) {
         expect(msg).to.be.a('string');
         expect(msg).to.not.equal(JSON.stringify(data));
         expect(msg).to.equal('["\\u2028\\u2029"]');
 
         done();
-      }).on('error', function (err) {
+      }).on('error', function(err) {
         throw err;
       });
 
       expect(spark.write(data)).to.equal(true);
     });
 
-    it('emits an error when it cannot encode the data', function (done) {
-      var spark = new primus.Spark()
-        , data = { foo: 'bar' };
+    it('emits an error when it cannot encode the data', function(done) {
+      var spark = new primus.Spark(),
+        data = {
+          foo: 'bar'
+        };
 
       data.recusrive = data;
 
-      spark.on('error', function (err) {
+      spark.on('error', function(err) {
         expect(err).to.be.instanceOf(Error);
         done();
       });
@@ -255,8 +260,8 @@ describe('Spark', function () {
     });
   });
 
-  describe('.initialise', function () {
-    it('allows overriding the initialise function', function (done) {
+  describe('.initialise', function() {
+    it('allows overriding the initialise function', function(done) {
       Spark.prototype.initialise = function init() {
         Spark.prototype.__initialise.length = 1;
         done();
@@ -265,7 +270,7 @@ describe('Spark', function () {
       new Spark(primus);
     });
 
-    it('get initialise returns the last added function', function () {
+    it('get initialise returns the last added function', function() {
       expect(Spark.prototype.initialise).to.equal(Spark.prototype.__initialise[0]);
 
       function foo() {}
@@ -278,115 +283,127 @@ describe('Spark', function () {
     });
   });
 
-  describe('ping/pong', function () {
-    it('emits `incoming::pong` on a pong event', function (done) {
-      var spark = new primus.Spark()
-        , now = Date.now();
+  describe('ping/pong', function() {
+    it('emits `incoming::pong` on a pong event', function(done) {
+      var spark = new primus.Spark(),
+        now = Date.now();
 
-      spark.on('incoming::pong', function (time) {
+      spark.on('incoming::pong', function(time) {
         expect(time).to.equal(now);
         done();
       });
 
-      spark.emit('incoming::data', JSON.stringify('primus::pong::'+ now));
+      spark.emit('incoming::data', JSON.stringify('primus::pong::' + now));
     });
 
-    it('emits `heartbeat` on a pong event', function (done) {
-      var spark = new primus.Spark()
-        , now = Date.now();
+    it('emits `heartbeat` on a pong event', function(done) {
+      var spark = new primus.Spark(),
+        now = Date.now();
 
-      spark.on('heartbeat', function () {
+      spark.on('heartbeat', function() {
         done();
       });
 
-      spark.emit('incoming::data', JSON.stringify('primus::pong::'+ now));
+      spark.emit('incoming::data', JSON.stringify('primus::pong::' + now));
     });
 
-    it('emits `outgoing::ping` when sending a ping', function (done) {
-      var primus = new Primus(server, { pingInterval: 10 });
-      primus.on('connection', function(spark){
+    it('emits `outgoing::ping` when sending a ping', function(done) {
+      var primus = new Primus(server, {
+        pingInterval: 10
+      });
+      primus.on('connection', function(spark) {
         spark.happnProtocol = 'happn_4';
       });
       var spark = new primus.Spark();
 
-      spark.on('outgoing::ping', function () {
-        spark.on('end', function () {
+      spark.on('outgoing::ping', function() {
+        spark.on('end', function() {
           primus.destroy(done);
         });
       });
     });
 
-    it('writes `primus::ping::<timestamp>` when sending a ping', function (done) {
-      var primus = new Primus(server, { pingInterval: 10 });
-      primus.on('connection', function(spark){
+    it('writes `primus::ping::<timestamp>` when sending a ping', function(done) {
+      var primus = new Primus(server, {
+        pingInterval: 10
+      });
+      primus.on('connection', function(spark) {
         spark.happnProtocol = 'happn_4';
       });
       var spark = new primus.Spark();
 
-      spark.on('outgoing::ping', function (time) {
-        spark.once('outgoing::data', function (data) {
-          expect(data).to.equal(JSON.stringify('primus::ping::'+ time));
-          spark.on('end', function () {
+      spark.on('outgoing::ping', function(time) {
+        spark.once('outgoing::data', function(data) {
+          expect(data).to.equal(JSON.stringify('primus::ping::' + time));
+          spark.on('end', function() {
             primus.destroy(done);
           });
         });
       });
     });
 
-    it('does not write a `primus::ping::<timestamp>` when client is legacy, happn_', function (done) {
+    it('does not write a `primus::ping::<timestamp>` when client is legacy, happn_', function(done) {
 
       this.timeout(10000);
-      var primus = new Primus(server, { pingInterval: 10 });
-      primus.once('connection', function(spark){
+      var primus = new Primus(server, {
+        pingInterval: 10
+      });
+      primus.once('connection', function(spark) {
         spark.happnProtocol = 'happn_3';
       });
       var spark = new primus.Spark();
-      var testTimeout = setTimeout(function(){
+      var testTimeout = setTimeout(function() {
         primus.destroy(done);
       }, 3000);
-      spark.on('outgoing::ping', function (time) {
+      spark.on('outgoing::ping', function() {
         clearTimeout(testTimeout);
         done(new Error('this should not have happened!'));
       });
     });
 
-    it('does not write a `primus::ping::<timestamp>` when client is legacy, protocol 1.1.0', function (done) {
+    it('does not write a `primus::ping::<timestamp>` when client is legacy, protocol 1.1.0', function(done) {
 
       this.timeout(10000);
-      var primus = new Primus(server, { pingInterval: 10 });
-      primus.on('connection', function(spark){
+      var primus = new Primus(server, {
+        pingInterval: 10
+      });
+      primus.on('connection', function(spark) {
         spark.happnProtocol = '1.1.0';
       });
       var spark = new primus.Spark();
-      var testTimeout = setTimeout(function(){
+      var testTimeout = setTimeout(function() {
         primus.destroy(done);
       }, 3000);
-      spark.on('outgoing::ping', function (time) {
+      spark.on('outgoing::ping', function() {
         clearTimeout(testTimeout);
         done(new Error('this should not have happened!'));
       });
     });
 
-    it('does not write a `primus::ping::<timestamp>` when client is legacy, protocol isNaN', function (done) {
+    it('does not write a `primus::ping::<timestamp>` when client is legacy, protocol isNaN', function(done) {
 
       this.timeout(10000);
-      var primus = new Primus(server, { pingInterval: 10 });
-      primus.on('connection', function(spark){
+      var primus = new Primus(server, {
+        pingInterval: 10
+      });
+      primus.on('connection', function(spark) {
         spark.happnProtocol = 'blah';
       });
       var spark = new primus.Spark();
-      var testTimeout = setTimeout(function(){
+      var testTimeout = setTimeout(function() {
         primus.destroy(done);
       }, 3000);
-      spark.on('outgoing::ping', function (time) {
+      spark.on('outgoing::ping', function() {
         clearTimeout(testTimeout);
         done(new Error('this should not have happened!'));
       });
     });
 
-    it('allows overwriting heartbeat fn', function (done) {
-      var primus = new Primus(server, { pingInterval: 10 })
-        , spark = new primus.Spark();
+    it('allows overwriting heartbeat fn', function(done) {
+      var primus = new Primus(server, {
+          pingInterval: 10
+        }),
+        spark = new primus.Spark();
 
       var called = false;
       spark.heartbeat = function() {
@@ -394,7 +411,7 @@ describe('Spark', function () {
         spark.emit('outgoing::ping');
       };
 
-      spark.on('outgoing::ping', function (time) {
+      spark.on('outgoing::ping', function(time) {
         expect(called).to.equal(true);
         expect(time).to.equal(undefined);
         primus.destroy(done);
