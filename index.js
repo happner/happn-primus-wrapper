@@ -1,8 +1,8 @@
-var Primus = require('primus');
+const Primus = require('primus');
 
 Primus.Spark.prototype.getProtocolVersion = function(spark) {
   try {
-    let parsedVersion = parseInt(spark.happnProtocol.replace('happn_', ''));
+    const parsedVersion = parseInt(spark.happnProtocol.replace('happn_', ''));
     if (isNaN(parsedVersion)) return -1;
     return parsedVersion;
   } catch (e) {
@@ -27,8 +27,8 @@ Primus.Spark.prototype.endUnresponsive = function() {
 
 //overrides happen here
 Primus.Spark.prototype.heartbeat = function heartbeat() {
-  let spark = this;
-  let now = Date.now();
+  const spark = this;
+  const now = Date.now();
 
   //not alive anymore, end  the spark
   if (!spark.alive) {
@@ -57,7 +57,7 @@ Primus.Spark.prototype.heartbeat = function heartbeat() {
 //we receive a client ping, just pong straight back
 // - this function gets called by the handleMessage function in the session service in happn-3
 Primus.Spark.prototype.onLegacyPing = function(pingMessage) {
-  let lastPing = Date.now();
+  const lastPing = Date.now();
   this.lastPing = lastPing;
   this.alive = true;
   this.skipped = 0; //reset skipped as we are alive
