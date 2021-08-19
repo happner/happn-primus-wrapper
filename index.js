@@ -39,10 +39,12 @@ Primus.Spark.prototype.heartbeat = function heartbeat() {
   if (this.getProtocolVersion(spark) < 4) {
     //spark has not pinged yet - set lastPing to now
     if (!spark.lastPing) spark.lastPing = Date.now();
-    //lastPing was twice the default legacy ping interval ago
+    //lastPing was five times the default legacy ping interval ago
     //even if the spark is non-legacy, the 25 second wait for CONFIGURE-SESSION should be adequate
-    if ((now - spark.lastPing) > (25e3 * 2)) {
+    const lastPingThreshold = 25e3 * 5;
+    if ((now - spark.lastPing) > lastPingThreshold) {
       spark.alive = false;
+      console.warn(`legacy client unresponsive after ${lastPingThreshold} seconds`);
       this.endUnresponsive();
     }
     return; //dont send outgoing pings to legacy clients

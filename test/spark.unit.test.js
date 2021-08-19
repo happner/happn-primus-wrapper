@@ -102,7 +102,7 @@ describe('Spark Unit', function() {
 
     it('tests the heartbeat override, happnConnected, legacy unresponsive', function(done) {
 
-      this.timeout(65000);
+      this.timeout(150000);
 
       primus = new Primus(server, {
         pingInterval: 3000
@@ -130,12 +130,12 @@ describe('Spark Unit', function() {
         expect(unresponsive).to.equal(false);
         setTimeout(function() {
           expect(unresponsive).to.equal(false);
-          console.log('still testing...please wait another 50 seconds');
+          console.log('still testing...please wait another 125 seconds');
           setTimeout(function() {
             expect(unresponsive).to.equal(true);
             expect(pinged).to.equal(false);
             done();
-          }, 55000);//client ping has not happened for 2 x 25e3
+          }, (5 * 25e3) + 1000);//client ping has not happened for 5 x 25e3
         }, 2000);
       }, 2000);
     });
